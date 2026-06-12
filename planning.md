@@ -55,12 +55,16 @@ We want to use small chunks because the documents do not contain long form prose
 Retrieval will mainly be semantic search (good for paraphrased opinions), scoped by dorm via metadata filtering (i.e. adding dorm_name metadata to each chunk/document since documents are separated by dorm). Hybrid retrieval with a mix of lexical and semantic approach and reranking are known upgrades I would add if exact-term queries became an issue with real users, but for now I'll stick with the basics
 
 **Embedding model:**
+
 all-MiniLM-L6-v2
+
 **Top-k:**
+
 k=5 (should probably test, trial and error)
+
 **Production tradeoff reflection:**
+
 If this was a production project for real user without cost as a constraint, I would definitely choose a higher dim model that's paid. all-MiniLm is perfectly fine for what we are doing in this course though. Also for short reviews like the ones about Duke dorms, embedding model doesn't matter too much since the context of each chunk is already pretty small. Multilingual support also wouldn't matter much since this is an English speaking university and all students need to speak English to go to Duke. 
----
 
 ## Evaluation Plan
 
@@ -146,7 +150,19 @@ flowchart TD
      with my specified chunk size and overlap" is a plan. -->
 
 **Milestone 3 — Ingestion and chunking:**
+- **Tool:** Claude
+- **Input:** My chunking strategy outlined earlier in this file, plus a sample dorm `.txt` file so Claude sees the real format. I'll specify: one chunk = one review, split on my file's review delimiter, and attach `dorm_name` (from the filename) and `review_id` as metadata.
+- **Expected output:** A `load_documents()` function that reads every `.txt` in `documents/` with Python's built-in file reader, and a `chunk_text()` function that splits each file into one chunk per review and returns a list of `{text, dorm_name, review_id}` objects.
+- **Verification:** Run it on my real files and print the chunks. I'll check that (a) the chunk count equals my total number of reviews, (b) no chunk is split mid-review, and (c) every chunk carries the correct `dorm_name`.
 
 **Milestone 4 — Embedding and retrieval:**
+- **Tool:** Claude
+- **Input:** My retrieval approach section, choice of embedding model (`all-MiniLM-L6-v2`), vector db (ChromaDB), top-k value, and the requirement to filter by `dorm_name` before semantic ranking. I'll give it the chunk objects from Milestone 3 as the data shape.
+- **Expected output:** An `embed_and_store()` function that embeds each chunk and writes it to ChromaDB with its metadata, and a `retrieve(query, dorm=None)` function that embeds the query with the *same* model and returns the top-k most similar chunks, optionally filtered by dorm.
+- **Verification:** Call `retrieve()` directly in a test script (no LLM or interface yet — retrieval is tested in isolation) and print the returned chunks. Using test queries where I know the answer (e.g., "Is Blackwell quiet?"), I'll confirm the reviews that actually discuss the topic appear in the top-k, and that a dorm-filtered query returns only that dorm's reviews. Testing retrieval before generation exists means any later wrong answer can be isolated to the generation stage rather than retrieval.
 
 **Milestone 5 — Generation and interface:**
+- **Tool:** Claude.
+- **Input:** My retrieval function plus a generation prompt spec — the LLM should answer *only* from retrieved reviews, cite which review each claim comes from, and hedge when only one reviewer supports a claim (mitigating my small-sample-consensus risk).
+- **Expected output:** A `generate_answer(query)` function that retrieves chunks, builds a grounded prompt, and calls the LLM (Groq); plus a simple **Gradio** chat interface where a user types a question and sees the answer with its sources.
+- **Verification:** Ask questions whose answers I can check against the source reviews, and confirm the answer is grounded (no invented facts) and cites the correct reviews. I'll also ask an off-topic question (e.g., about a dorm with no reviews) to confirm it says "I don't have information" instead of hallucinating.
