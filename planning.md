@@ -49,7 +49,7 @@ I chose dorm reviews at Duke University. This knowledge is valuable because as a
 Zero overlap *between* different reviews — they're distinct opinions with a clean `---` delimiter, so overlap would only blur boundaries. The one exception: if a long review is sub-split, use a small (~1 sentence) overlap *within* that review so a sentence straddling the split isn't lost. Sub-chunks of the same review share one `review_id`.
 
 **Reasoning:**
-The documents are short, opinionated reviews not long-form prose, so we want a single/few ideas per chunk for high retrieval precision; large chunks would mix multiple topics and lower precision. One-review-per-chunk fits the data -- only 1 of 27 reviews is long enough to need sub-splitting, so fixed-character chunking would needlessly fragment the other 26 clean reviews. The sub-split rule exists only to respect the embedding model's 256-token ceiling.
+The documents are short, opinionated reviews not long-form prose, so we want a single/few ideas per chunk for high retrieval precision; large chunks would mix multiple topics and lower precision. One-review-per-chunk fits the data -- only 1 of 28 reviews is long enough to need sub-splitting, so fixed-character chunking would needlessly fragment the other 27 clean reviews. The sub-split rule exists only to respect the embedding model's 256-token ceiling.
 
 ## Retrieval Approach
 
@@ -157,7 +157,7 @@ flowchart TD
 - **Tool:** Claude
 - **Input:** My chunking strategy outlined earlier in this file, plus a sample dorm `.txt` file so Claude sees the real format. I'll specify: one chunk = one review, split on my file's review delimiter, and attach `dorm_name` (from the filename) and `review_id` as metadata.
 - **Expected output:** A `load_documents()` function that reads every `.txt` in `documents/` with Python's built-in file reader, and a `chunk_text()` function that splits each file into one chunk per review and returns a list of `{text, dorm_name, review_id}` objects.
-- **Verification:** Run it on my real files and print the chunks. I'll check that (a) the chunk count equals my total number of reviews *plus* any sub-chunks from long reviews (currently 27 reviews → 28 chunks, since one Basset review sub-splits), (b) no chunk is split mid-review *except* the deliberate long-review sub-split, and sub-chunks of the same review share a `review_id`, and (c) every chunk carries the correct `dorm_name`.
+- **Verification:** Run it on my real files and print the chunks. I'll check that (a) the chunk count equals my total number of reviews *plus* any sub-chunks from long reviews (currently 28 reviews → 29 chunks, since one Basset review sub-splits), (b) no chunk is split mid-review *except* the deliberate long-review sub-split, and sub-chunks of the same review share a `review_id`, and (c) every chunk carries the correct `dorm_name`.
 
 **Milestone 4 — Embedding and retrieval:**
 - **Tool:** Claude
