@@ -22,14 +22,10 @@ from sentence_transformers import SentenceTransformer
 
 from ingest import build_chunks
 
-# Same embedding model as planning.md's Retrieval Approach (and the one ingest.py's
-# token guardrail is sized for). The query side (retrieve()) must use this same model.
 MODEL_NAME = "all-MiniLM-L6-v2"
 
-# Persisted Chroma store. Matches the `chroma_db/` entry already in .gitignore.
 CHROMA_DIR = Path(__file__).resolve().parent.parent / "chroma_db"
 COLLECTION_NAME = "duke_dorm_reviews"
-
 
 def _assign_chunk_ids(chunks: list[dict]) -> list[str]:
     """Derive a unique, deterministic id per chunk.

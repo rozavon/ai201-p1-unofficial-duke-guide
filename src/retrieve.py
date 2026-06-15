@@ -77,6 +77,17 @@ def retrieve(query: str, dorm: str | None = None, k: int = DEFAULT_TOP_K) -> lis
     ]
 
 
+def list_dorms() -> list[str]:
+    """Return the distinct ``dorm_name`` values present in the index, sorted.
+
+    Generation (Milestone 5) uses this to detect which dorm(s) a question names so it
+    can scope retrieval — and, for multi-dorm comparisons, retrieve per dorm.
+    """
+    stored = _collection.get(include=["metadatas"])
+    metadatas = stored["metadatas"] or []
+    return sorted({str(md["dorm_name"]) for md in metadatas})
+
+
 def _print_results(query: str, results: list[dict]) -> None:
     print("=" * 78)
     print(f"QUERY: {query}")
